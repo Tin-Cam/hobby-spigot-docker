@@ -1,0 +1,6 @@
+#!/bin/sh
+if [ ! -f spigot-1.19.4.jar ]; then
+    echo "Building server..."
+    java -jar BuildTools.jar
+fi
+java -jar spigot-1.19.4.jar --world-container $DIR_WORLDS
