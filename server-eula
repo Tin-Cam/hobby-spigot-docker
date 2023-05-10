@@ -1,0 +1,51 @@
+#!/bin/sh
+
+EULA_FILE=$DIR_SERVER/eula.txt
+
+get_eula_file_value() {
+    if grep -q "eula=true" $EULA_FILE; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
+get_eula_file_exists() {
+    if [ ! -f $EULA_FILE ]; then
+        echo "false"
+    else
+        echo "true"
+    fi
+}
+
+sign_eula_file() {
+    eula_file_value=$(get_eula_file_value)
+    sed "s/$eula_file_value/$1/" "$EULA_FILE" > "$EULA_FILE.tmp"
+    mv "$EULA_FILE.tmp" "$EULA_FILE"
+    echo "EULA has been updated!:"
+    cat "$EULA_FILE"
+}
+
+# Check if correct arguments are given
+if [ $# -gt 1 ]; then
+    echo "Usage: $0 [true|false]"
+    exit 1
+fi
+
+if [ "$(get_eula_file_exists)" = "false" ]; then
+    echo "eula.txt does not exist! Please run Spigot server once to generate the file."
+    exit
+fi
+
+if [ "$(get_eula_file_value)" = "true" ]; then
+    echo "eula.txt has already been signed."
+    exit
+else
+    echo "eula.txt is currently unsigned."
+fi
+
+# Sign EULA if argument is given
+if [ $# -eq 1 ]; then
+    sign_eula_file "$1"
+    echo "eula.txt has been signed with $1"
+fi

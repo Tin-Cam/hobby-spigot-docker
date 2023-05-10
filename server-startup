@@ -1,6 +1,41 @@
 #!/bin/sh
-if [ ! -f spigot-1.19.4.jar ]; then
+
+build_server() {
+    if [ ! -f $DIR_SERVER/BuildTools.jar ]; then
+        echo Download
+        wget -O $DIR_SERVER/BuildTools.jar https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
+    fi
+    java -jar $DIR_SERVER/BuildTools.jar
+}
+
+start_server() {
+    java -jar $DIR_SERVER/spigot-1.19.4.jar --world-container $DIR_WORLDS
+}
+
+# Build server if not done already
+if [ ! -f $DIR_SERVER/spigot-1.19.4.jar ]; then
     echo "Building server..."
-    java -jar BuildTools.jar
+    build_server
+    start_server
+
+    # Sign EULA if env variable is set to true
+    if [ $EULA ]; then
+        sed 's/false/true/' $DIR_SERVER/eula.txt > $DIR_SERVER/eula.txt
+        cat $DIR_SERVER/eula.txt
+        echo "EULA has been signed!"
+    else
+        echo "EULA must be signed before starting server!"
+        exit
+    fi
 fi
-java -jar spigot-1.19.4.jar --world-container $DIR_WORLDS
+
+# Check EULA if server is already built
+if [ ! $EULA ]; then
+    echo "The EULA must be signed before the server can be run. Either locate the eula.txt in the container or rerun the container with -e EULA=true"
+    exit
+fi
+
+# Run server
+start_server
+echo "Spigot app is"
+echo $SPIGOT_APP

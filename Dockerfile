@@ -1,10 +1,17 @@
 FROM alpine
 
-# TODO - Arguments
+# Arguments
+ARG spigot_version=1.19.4
+
+# Volumes
+VOLUME /worlds
+VOLUME /opt/spigot
 
 # Environment variables
-ENV DIR_WORLDS /worlds
+ENV DIR_WORLDS /worlds/current
 ENV DIR_SERVER /opt/spigot
+ENV SPIGOT_APP spigot-$spigot_version.jar
+ENV EULA false
 
 # Install required packages
 RUN apk add --no-cache openjdk17
@@ -22,7 +29,7 @@ USER minecraft
 WORKDIR ${DIR_SERVER}
 
 # Download server build tools as minecraft user
-RUN wget -O BuildTools.jar https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
+# RUN wget -O BuildTools.jar https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
 
 # Expose minecraft port
 EXPOSE 25565
