@@ -1,9 +1,9 @@
 #!/bin/sh
 
-EULA_FILE=$DIR_SERVER/eula.txt
+var_eula_file=$DIR_SERVER/eula.txt
 
 get_eula_file_value() {
-    if grep -q "eula=true" $EULA_FILE; then
+    if grep -q "eula=true" $var_eula_file; then
         echo "true"
     else
         echo "false"
@@ -11,7 +11,10 @@ get_eula_file_value() {
 }
 
 get_eula_file_exists() {
-    if [ ! -f $EULA_FILE ]; then
+    if [ ! -f $var_eula_file ]; then # Check that eula.txt exists
+        echo "false"
+    elif ! grep -q "eula=" $var_eula_file; then # Check that eula.txt contains eula= variable (i.e check it isn't empty)
+        rm $var_eula_file
         echo "false"
     else
         echo "true"
@@ -19,11 +22,12 @@ get_eula_file_exists() {
 }
 
 sign_eula_file() {
-    eula_file_value=$(get_eula_file_value)
-    sed "s/$eula_file_value/$1/" "$EULA_FILE" > "$EULA_FILE.tmp"
-    mv "$EULA_FILE.tmp" "$EULA_FILE"
+    var_eula_file_value=$(get_eula_file_value)
+    sed "s/$var_eula_file_value/$1/" "$var_eula_file" > "$var_eula_file.tmp"
+    mv "$var_eula_file.tmp" "$var_eula_file"
+    export EULA=$1
     echo "EULA has been updated!:"
-    cat "$EULA_FILE"
+    cat "$var_eula_file"
 }
 
 # Check if correct arguments are given
@@ -37,8 +41,9 @@ if [ "$(get_eula_file_exists)" = "false" ]; then
     exit
 fi
 
+# Check if eula.txt is already signed
 if [ "$(get_eula_file_value)" = "true" ]; then
-    echo "eula.txt has already been signed."
+    echo "eula.txt is signed."
     exit
 else
     echo "eula.txt is currently unsigned."

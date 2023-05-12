@@ -1,0 +1,4 @@
+#!/bin/sh
+
+sh /usr/local/bin/server-eula $EULA
+java -jar $DIR_SERVER/spigot-1.19.4.jar --world-container $DIR_WORLDS/current --plugins $DIR_PLUGINS

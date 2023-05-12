@@ -3,15 +3,21 @@ FROM alpine
 # Arguments
 ARG spigot_version=1.19.4
 
-# Volumes
-VOLUME /worlds
-VOLUME /opt/spigot
-
 # Environment variables
-ENV DIR_WORLDS /worlds/current
 ENV DIR_SERVER /opt/spigot
+ENV DIR_WORLDS /worlds
+ENV DIR_PLUGINS /plugins
 ENV SPIGOT_APP spigot-$spigot_version.jar
 ENV EULA false
+
+# Volumes
+VOLUME $DIR_SERVER
+VOLUME $DIR_WORLDS
+VOLUME $DIR_PLUGINS
+
+RUN mkdir -p $DIR_SERVER
+RUN mkdir -p $DIR_WORLDS
+RUN mkdir -p $DIR_PLUGINS
 
 # Install required packages
 RUN apk add --no-cache openjdk17
@@ -19,19 +25,21 @@ RUN apk add --no-cache git
 RUN apk add --no-cache --upgrade bash
 
 # Copy image scripts
-COPY server-startup /usr/local/bin
+COPY server-init /usr/local/bin
+COPY server-start /usr/local/bin
+COPY server-eula /usr/local/bin
 
 #RUN git config --global --unset core.autocrlf
 
 # Create and switch to minecraft user
 RUN adduser -D minecraft
+RUN chown minecraft:minecraft $DIR_SERVER
+RUN chown minecraft:minecraft $DIR_WORLDS
+RUN chown minecraft:minecraft $DIR_PLUGINS
 USER minecraft
 WORKDIR ${DIR_SERVER}
-
-# Download server build tools as minecraft user
-# RUN wget -O BuildTools.jar https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
 
 # Expose minecraft port
 EXPOSE 25565
 
-CMD ["/usr/local/bin/server-startup"]
+CMD ["/usr/local/bin/server-init"]

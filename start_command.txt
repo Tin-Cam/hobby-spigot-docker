@@ -1,0 +1,1 @@
+docker run -p 25565:25565 -e EULA=true -v $HOME/spigot-server/server:/opt/spigot -v $HOME/spigot-server/worlds:/worlds -v $HOME/spigot-server/plugins:/plugins -it spigot
