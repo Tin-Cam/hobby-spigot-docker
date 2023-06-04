@@ -15,6 +15,8 @@ VOLUME $DIR_SERVER
 VOLUME $DIR_WORLDS
 VOLUME $DIR_PLUGINS
 
+VOLUME [ “/sys/fs/cgroup” ]
+
 RUN mkdir -p $DIR_SERVER
 RUN mkdir -p $DIR_WORLDS
 RUN mkdir -p $DIR_PLUGINS
@@ -22,12 +24,19 @@ RUN mkdir -p $DIR_PLUGINS
 # Install required packages
 RUN apk add --no-cache openjdk17
 RUN apk add --no-cache git
+RUN apk add --no-cache screen
 RUN apk add --no-cache --upgrade bash
+RUN apk add --no-cache openrc
 
 # Copy image scripts
 COPY server-init /usr/local/bin
 COPY server-start /usr/local/bin
 COPY server-eula /usr/local/bin
+RUN chmod 755 /usr/local/bin
+
+COPY spigotd /etc/init.d/
+RUN chmod +x /etc/init.d/spigotd
+
 
 #RUN git config --global --unset core.autocrlf
 

@@ -1,0 +1,12 @@
+#!/sbin/openrc-run
+description="Spigot Minecraft Server"
+command="/usr/bin/java"
+command_args="-Xms1G -Xmx2G -jar /opt/spigot/spigot-1.19.4.jar --world-container $DIR_WORLDS/current --plugins $DIR_PLUGINS"
+user="minecraft"
+directory="$DIR_SERVER"
+pidfile="$DIR_SERVER/spigot.pid"
+
+depend() {
+  after network
+  need localmount
+}

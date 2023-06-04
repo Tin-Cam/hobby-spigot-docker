@@ -1,5 +1,13 @@
 #!/bin/sh
 
+# Function to handle SIGTERM signal
+on_terminate() {
+    echo "server-init Received SIGTERM signal. Stopping server program..."
+    stop_server
+    echo "Server program stopped."
+    exit 0
+}
+
 build_server() {
     if [ ! -f $DIR_SERVER/BuildTools.jar ]; then
         wget -O $DIR_SERVER/BuildTools.jar https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
@@ -8,9 +16,27 @@ build_server() {
 }
 
 start_server() {
-    #java -jar $DIR_SERVER/spigot-1.19.4.jar --world-container $DIR_WORLDS
-    sh /usr/local/bin/server-start
+    # Register the signal handler for SIGTERM
+    trap 'on_terminate' TERM
+
+    # Start server
+    echo "Starting server"
+    screen -S spigot_server bash -c 'java -Xms1G -Xmx2G -jar /opt/spigot/$SPIGOT_APP --world-container $DIR_WORLDS/current --plugins $DIR_PLUGINS'
+    echo "Server has shutdown."
+
+    screen_pid=$(screen -ls | awk '/\.spigot_server\t/ {print substr($1, 1, index($1, ".")-1)}')
+    echo 'Screen session is $screen_pid'
+    echo "ps is"
+    ps
 }
+
+stop_server() {
+    screen -S spigot_server -p 0 -X eval 'stuff \"stop\"\015'
+    echo 'Server is shutting down. Timing out after 60 seconds.'
+    sleep 60
+}
+
+
 
 # Build server if not done already
 if [ ! -f $DIR_SERVER/spigot-1.19.4.jar ]; then
@@ -29,13 +55,5 @@ if [ ! -f $DIR_SERVER/spigot-1.19.4.jar ]; then
     fi
 fi
 
-# Check EULA if server is already built
-# if [ ! $EULA ]; then
-#     echo "The EULA must be signed before the server can be run. Either edit the eula.txt in the container or rerun the container with -e EULA=true"
-#     exit
-# fi
-
 # Run server
 start_server
-echo "Spigot app is"
-echo $SPIGOT_APP

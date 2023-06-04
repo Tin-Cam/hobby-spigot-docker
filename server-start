@@ -1,4 +1,23 @@
 #!/bin/sh
 
+# Function to handle SIGTERM signal
+on_terminate() {
+    echo "server-start Received SIGTERM signal. Stopping server program..."
+    kill -TERM "$server_pid"  # Sending TERM to the server program
+    wait "$server_pid"       # Waiting for the server program to exit
+    echo "Server program stopped."
+    exit 0
+}
+
+# Register the signal handler for SIGTERM
+trap 'on_terminate' TERM
+
+# Start server
+echo "Minecraft server is starting!"
 sh /usr/local/bin/server-eula $EULA
-java -jar $DIR_SERVER/spigot-1.19.4.jar --world-container $DIR_WORLDS/current --plugins $DIR_PLUGINS
+java -jar $DIR_SERVER/spigot-1.19.4.jar --world-container $DIR_WORLDS/current --plugins $DIR_PLUGINS &
+server_pid=$!
+
+wait "$server_pid"
+
+echo "Minecraft server has stopped!"
